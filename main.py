@@ -23,15 +23,18 @@ def test(algorithm: Algorithm, filename: str):
     
 
 if __name__ == "__main__":
-    algoritm = Clas()
-    t_start = time.time()
-    test(algoritm, "classic")
-    t_end = time.time()
-    print(f"classic: {(t_end - t_start) / 100}")
+    root = tk.Tk()
+    gui = GUI(root, "метод отжига")
     
-    algoritm = Kmethod()
-    t_start = time.time()
-    test(algoritm, "kmethod")
-    t_end = time.time()
-    print(f"kmethod: {(t_end - t_start) / 100}")
+    # algoritm = Clas()
+    # t_start = time.time()
+    # test(algoritm, "classic")
+    # t_end = time.time()
+    # print(f"classic: {(t_end - t_start) / 100}")
+    
+    # algoritm = Kmethod()
+    # t_start = time.time()
+    # test(algoritm, "kmethod")
+    # t_end = time.time()
+    # print(f"kmethod: {(t_end - t_start) / 100}")
             

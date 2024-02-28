@@ -56,28 +56,36 @@ class Algorithm:
     
     
     def search_first_way(self) -> list[dict]:
-        lifo = q.LifoQueue()
-        visited = dict.fromkeys(self._graph.nodes, False)
-        visited[1] = True
-        lifo.put((1, visited, []))
+        # Поиск гамильтонова цикла с помощью алгоритма ближайшего соседа
+        lifo = q.LifoQueue()  # LIFO очередь для хранения вершин
+        lifo.put(1)  # Начинаем с вершины 1
+        visited = dict.fromkeys(self._graph.nodes, False)  # Словарь для отслеживания посещенных вершин
+        way = list()  # Список для хранения найденного пути
         
         while not lifo.empty():
-            vertex, visited, way = lifo.get()
-            way = list(way); visited = dict(visited)
+            min_weight_edge = {"from": None, "to": None, "weight": float('inf')}  # Минимальное ребро из текущей вершины
+            vertex = lifo.get()  # Получаем текущую вершину из очереди
+            if visited[vertex]:  # Если вершина уже посещена, пропускаем ее
+                continue
+            else:
+                visited[vertex] = True  # Помечаем вершину как посещенную
             
-            for neighbor in self._graph.neighbors(vertex):
-                if not visited[neighbor]:
-                    visited[neighbor] = True
-                    way.append({"from": vertex, "to": neighbor, "weight": self._graph[vertex][neighbor]["weight"]})
-                    lifo.put((neighbor, visited.copy(), way.copy()))
-                    visited[neighbor] = False
-                    way.pop(-1)
-            
-            if all([visited[x] for x in self._graph.nodes]) and self._graph.has_edge(vertex, 1):
-                way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})
-                return way
-            
-        return []
+            for neighbor in self._graph.neighbors(vertex):  # Просматриваем соседей текущей вершины
+                weight = self._graph[vertex][neighbor]["weight"]  # Получаем вес ребра до соседней вершины
+                if weight < min_weight_edge["weight"] and not visited[neighbor]:  # Если вес меньше минимального и соседняя вершина не посещена
+                    min_weight_edge = {"from": vertex, "to": neighbor, "weight": weight}  # Обновляем минимальное ребро
+                    
+            if min_weight_edge["weight"] == float('inf'):  # Если не найдено подходящего ребра
+                if all([visited[x] for x in self._graph.nodes]) and self._graph.has_edge(vertex, 1):  # Если все вершины посещены и есть ребро к начальной вершине
+                    way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})  # Добавляем ребро к начальной вершине
+                    return way  # Возвращаем найденный путь
+                
+                return []  # Возвращаем найденный путь
+                    
+            way.append(min_weight_edge)  # Добавляем минимальное ребро в путь
+            lifo.put(way[-1]["to"])  # Помещаем следующую вершину в очередь
+        
+        return [] # Возвращаем путь (может быть неполным)
     
     def swap_vertexes(self, index_1: int, index_2: int, way_vertexes: list, way_edges: list[dict]) -> tuple[list, list[dict]]:
         index_1, index_2 = min(index_1, index_2), max(index_1, index_2)
