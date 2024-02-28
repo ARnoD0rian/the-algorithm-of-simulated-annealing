@@ -17,7 +17,7 @@ class Algorithm:
         self._graph = nx.DiGraph()
         
         self._func_T = Function('0.999*t')
-        self._start_T = 1
+        self._start_T = 10.0**(10)
         self._end_T = 10.0**(-10)
         self._func_F = random.sample
         self._func_E = self.calculate_length
@@ -34,6 +34,8 @@ class Algorithm:
         edges_way = self.search_first_way()
         if len(edges_way) == 0: return edges_way
         vertexes_way = [edge["from"] for edge in edges_way]
+        min_length = self._func_E(edges_way)
+        min_edges_way = edges_way.copy()
         
         current_T = self._start_T
         while current_T > self._end_T:
@@ -42,17 +44,21 @@ class Algorithm:
             length = self._func_E(edges_way)
             new_length = self._func_E(new_edges_way)
             if length > new_length:
+                if min_length > new_length:
+                    min_length = new_length
+                    min_edges_way = edges_way.copy()
+                    
                 vertexes_way = new_vertexes_way.copy()
                 edges_way = new_edges_way.copy()
                 
             else:
-                if random.random() < self._func_swap.mean(current_T):
+                if random.random() < math.exp(-(new_length - length + 1) / current_T):
                     vertexes_way = new_vertexes_way.copy()
                     edges_way = new_edges_way.copy()
             
             current_T = self._func_T.mean(current_T)
 
-        return edges_way
+        return min_edges_way
     
     
     def search_first_way(self) -> list[dict]:
