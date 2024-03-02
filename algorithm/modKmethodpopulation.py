@@ -2,6 +2,11 @@ import networkx as nx
 import queue as q
 import random
 import math
+
+
+NUM_INDIVID = 200
+FUNCTION = lambda x: (1/math.exp(x))
+
 class Function:
     def __init__(self, func:str) -> None:
         self._function = func
@@ -17,8 +22,8 @@ class Algorithm:
         self._graph = nx.DiGraph()
         
         self._func_T = Function('0.999*t')
-        self._start_T = 10.0**(10)
-        self._end_T = 10.0**(-10)
+        self._start_T = 10.0**(15)
+        self._end_T = 10.0**(-15)
         self._func_F = random.sample
         self._func_E = self.calculate_length
         self._func_swap = Function('(-1)*1/t')
@@ -67,36 +72,10 @@ class Algorithm:
     
     
     def search_first_way(self) -> list[dict]:
-        # Поиск гамильтонова цикла с помощью алгоритма ближайшего соседа
-        lifo = q.LifoQueue()  # LIFO очередь для хранения вершин
-        lifo.put(1)  # Начинаем с вершины 1
-        visited = dict.fromkeys(self._graph.nodes, False)  # Словарь для отслеживания посещенных вершин
-        way = list()  # Список для хранения найденного пути
-        
-        while not lifo.empty():
-            min_weight_edge = {"from": None, "to": None, "weight": float('inf')}  # Минимальное ребро из текущей вершины
-            vertex = lifo.get()  # Получаем текущую вершину из очереди
-            if visited[vertex]:  # Если вершина уже посещена, пропускаем ее
-                continue
-            else:
-                visited[vertex] = True  # Помечаем вершину как посещенную
-            
-            for neighbor in self._graph.neighbors(vertex):  # Просматриваем соседей текущей вершины
-                weight = self._graph[vertex][neighbor]["weight"]  # Получаем вес ребра до соседней вершины
-                if weight < min_weight_edge["weight"] and not visited[neighbor]:  # Если вес меньше минимального и соседняя вершина не посещена
-                    min_weight_edge = {"from": vertex, "to": neighbor, "weight": weight}  # Обновляем минимальное ребро
-                    
-            if min_weight_edge["weight"] == float('inf'):  # Если не найдено подходящего ребра
-                if all([visited[x] for x in self._graph.nodes]) and self._graph.has_edge(vertex, 1):  # Если все вершины посещены и есть ребро к начальной вершине
-                    way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})  # Добавляем ребро к начальной вершине
-                    return way  # Возвращаем найденный путь
-                
-                return []  # Возвращаем найденный путь
-                    
-            way.append(min_weight_edge)  # Добавляем минимальное ребро в путь
-            lifo.put(way[-1]["to"])  # Помещаем следующую вершину в очередь
-        
-        return [] # Возвращаем путь (может быть неполным)
+        individs = [Individ(self._graph) for _ in range(NUM_INDIVID)]
+        for i in range(len(individs)): individs[i].algoritm()
+        best_individ = min(individs, key= lambda ind: ind.way_long)
+        return best_individ.way if best_individ.way_long < 10**6 else []
     
     def swap_vertexes(self, index_1: int, index_2: int, way_vertexes: list, way_edges: list[dict]) -> tuple[list, list[dict], bool]:
         index_1, index_2 = min(index_1, index_2), max(index_1, index_2)
@@ -152,3 +131,64 @@ class Algorithm:
         length = 0
         for edge in way_edges: length += edge["weight"]
         return length
+    
+
+class Individ:
+    def __init__(self, graph: nx.DiGraph) -> None:
+        self._graph = graph
+        self._visited = dict.fromkeys(graph.nodes, False)
+        self._way_node = list()
+        self._way_long = 0
+        self._way = list()
+        
+    @property
+    def visited(self):
+        return self._visited
+    
+    @property
+    def way_node(self):
+        return self._way_node
+    
+    @property
+    def way_long(self):
+        return self._way_long
+    
+    @property
+    def way(self):
+        return self._way
+    
+    def algoritm(self):
+        lifo = q.LifoQueue()
+        lifo.put(1)
+        while not lifo.empty():
+            min_weight_edge = {"from": None, "to": None, "weight": float('inf')}
+            vertex = lifo.get()
+            if self._visited[vertex]: continue
+            else: self._visited[vertex] = True
+
+            neighbors = []
+            rand_coefficient = []
+            for neighbor in self._graph.neighbors(vertex):
+                if not self._visited[neighbor]:
+                    neighbors.append((neighbor, self._graph[vertex][neighbor]["weight"]))
+                    rand_coefficient.append(FUNCTION(neighbors[-1][1]))
+                    
+            if len(neighbors) > 0:
+                new_vertex = random.choices(neighbors, rand_coefficient)[0]
+                min_weight_edge = {"from": vertex, "to": new_vertex[0], "weight": new_vertex[1]}
+                self._way_long += new_vertex[1]
+                
+            if min_weight_edge["weight"] == float('inf'):
+
+                if all([self._visited[x] for x in self._graph.nodes]) and self._graph.has_edge(vertex, 1):
+                    self._way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})
+                    self._way_long += self._graph[vertex][1]["weight"]
+
+                else: self._way_long = 10**6
+                
+                return
+
+            self._way.append(min_weight_edge)
+            lifo.put(self._way[-1]["to"])
+    
+        self._way_long = 10**6   

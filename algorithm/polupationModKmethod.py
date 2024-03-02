@@ -23,7 +23,7 @@ class Algorithm:
         individs = [Individ(self._graph) for _ in range(NUM_INDIVID)]
         for i in range(len(individs)): individs[i].algoritm()
         best_individ = min(individs, key= lambda ind: ind.way_long)
-        return best_individ.way
+        return best_individ.way if best_individ.way_long < 10**6 else []
             
 class Individ:
     def __init__(self, graph: nx.DiGraph) -> None:
@@ -76,12 +76,14 @@ class Individ:
                     self._way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})
                     self._way_long += self._graph[vertex][1]["weight"]
 
-                return 
+                else: self._way_long = 10**6
+                
+                return
 
             self._way.append(min_weight_edge)
             lifo.put(self._way[-1]["to"])
     
-        return    
+        self._way_long = 10**6    
                 
             
             

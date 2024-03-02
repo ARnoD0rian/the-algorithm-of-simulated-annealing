@@ -40,9 +40,9 @@ class Algorithm:
                     way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})  # Добавляем ребро к начальной вершине
                     return way  # Возвращаем найденный путь
                 
-                return way  # Возвращаем найденный путь
+                return []  # Возвращаем найденный путь
                     
             way.append(min_weight_edge)  # Добавляем минимальное ребро в путь
             lifo.put(way[-1]["to"])  # Помещаем следующую вершину в очередь
         
-        return way  # Возвращаем путь (может быть неполным)
+        return []  # Возвращаем путь (может быть неполным)

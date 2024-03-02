@@ -10,22 +10,20 @@ class Function:
     def new_function(self, func: str)->None:
         self._function = func
         
-    def mean(self, t: float)->None:
+    def mean(self, t: float)->float:
         return eval(self._function)
 
 class Algorithm:
     def __init__(self) -> None:
         self._graph = nx.DiGraph()
-        
         self._func_T = Function('0.999*t')
-        self._start_T = 10.0**(20)
-        self._end_T = 10.0**(-20)
+        self._start_T = 10.0**(10)
+        self._end_T = 10.0**(-10)
         self._func_F = random.sample
         self._func_E = self.calculate_length
         self._func_swap = Function('-t/10**10')
         
     def init_graph(self, vertex_num: int, edges: list[dict])->None:
-        
         self._graph.add_nodes_from([(x+1) for x in range(vertex_num)])
         for edge in edges:
             self._graph.add_edge(edge["from"], edge["to"], weight=edge["weight"])
@@ -42,7 +40,9 @@ class Algorithm:
         while current_T > self._end_T:
             swap_vertexes = self._func_F(range(0, len(vertexes_way)), 2)
             new_vertexes_way, new_edges_way, is_swapped = self.swap_vertexes(swap_vertexes[0], swap_vertexes[1], vertexes_way.copy(), edges_way.copy())
-            if not is_swapped: continue
+            if not is_swapped: 
+                current_T = self._func_T.mean(current_T)
+                continue
             length = self._func_E(edges_way)
             new_length = self._func_E(new_edges_way)
             if length > new_length:
@@ -83,8 +83,8 @@ class Algorithm:
                     may_way.append((neighbor, visited.copy(), way.copy()))
                     visited[neighbor] = False
                     way.pop(-1)
-                for edge in sorted(may_way, key= lambda x: self._func_E(x[2])):
-                    lifo.put(edge)
+            for edge in sorted(may_way, key= lambda x: self._func_E(x[2])):
+                lifo.put(edge)
             
             if all([visited[x] for x in self._graph.nodes]) and self._graph.has_edge(vertex, 1):
                 way.append({"from": vertex, "to": 1, "weight": self._graph[vertex][1]["weight"]})
@@ -121,8 +121,8 @@ class Algorithm:
                 if can_swap:
                     way_edges[(index_1 - 1 + len(way_vertexes)) % len(way_vertexes)] = \
                     {"from": vertex_pred_1, "to": vertex_2, "weight": self._graph[vertex_pred_1][vertex_2]["weight"]}
-                    way_edges[index_2] = {"from": vertex_2, "to": vertex_1, "weight": self._graph[vertex_2][vertex_1]["weight"]}
-                    way_edges[index_1] = {"from": vertex_1, "to": vertex_last_2, "weight": self._graph[vertex_1][vertex_last_2]["weight"]}
+                    way_edges[index_1] = {"from": vertex_2, "to": vertex_1, "weight": self._graph[vertex_2][vertex_1]["weight"]}
+                    way_edges[index_2] = {"from": vertex_1, "to": vertex_last_2, "weight": self._graph[vertex_1][vertex_last_2]["weight"]}
                       
         else:
             can_swap = (self._graph.has_edge(vertex_pred_1, vertex_2) 

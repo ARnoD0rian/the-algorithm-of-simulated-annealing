@@ -6,7 +6,7 @@ import os
 from tkinter.messagebox import showerror, showinfo
 from tkinter.simpledialog import askstring
 import networkx as nx
-from algorithm.classic import Algorithm
+from algorithm.classicAndNearestNeibhor import Algorithm
 
 class GUI:
     def __init__(self, root: tk.Tk, title: str) -> None:
@@ -20,7 +20,7 @@ class GUI:
         #интерфейс
         self.root = root
         self.root.title(title)
-        self.root.geometry('1200x600')
+        self.root.geometry('1200x410')
         self.root['background'] = "#EDE7E6"
         self.root.resizable(False, False)
 
